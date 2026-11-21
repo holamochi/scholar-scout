@@ -1,111 +1,52 @@
-# 🔍 ScholarScout
+# ScholarScout
+
+**一条命令看清一个研究方向在顶会上的版图：抓取 OpenReview 论文，自动分类，画出分布图和年度趋势。**
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![OpenAI Compatible](https://img.shields.io/badge/OpenAI-Compatible-brightgreen.svg)](https://platform.openai.com)
-
-### 你的学术论文智能侦察兵 | Your Intelligent Academic Paper Scout
-
-> 🎓 从 OpenReview 自动抓取、智能分类和可视化 ICLR/ICML 等顶会论文
-> 🤖 支持规则分类和 LLM 智能分类的混合策略
-> 🔧 零代码修改即可适配任意研究领域
-
-**默认聚焦 In-Context Learning (ICL)** 研究,包含 9 大类别分类体系。通过简单配置可扩展至其他领域。
-
-## 📸 运行结果展示
 
 <div align="center">
-<img src="out/icl_pie_donut_refined.png" width="45%" alt="类别分布饼图">
-<img src="out/icl_trend_lines_refined.png" width="45%" alt="年度趋势图">
+<img src="out/icl_pie_donut_refined.png" width="45%" alt="ICL 论文类别分布饼图">
+<img src="out/icl_trend_lines_refined.png" width="45%" alt="ICL 论文各类别年度趋势图">
 </div>
 
----
+默认聚焦 **In-Context Learning（ICL）**，内置 9 个类别。只改配置就能换成多模态、强化学习、图神经网络等任何方向，不需要改代码。
 
-## ✨ 核心特性
+## 为什么做 ScholarScout
 
-### 🤖 智能分类系统
-- **三种分类模式**: 规则分类(快速免费) / LLM 分类(高准确) / 混合策略(推荐)
-- **自动缓存**: LLM 结果持久化,避免重复 API 调用
-- **置信度回退**: 低置信度自动降级为规则分类
-- **断点续传**: 支持中断恢复
+写综述、找选题或者准备组会时，常常需要回答：这个方向今年在 ICLR / ICML 上有多少篇？分成哪几个子方向？哪个子方向在升温？
 
-### 📊 数据处理与可视化
-- **自动抓取**: 从 OpenReview API 批量获取论文元数据
-- **多年份支持**: 可同时分析多个年份会议数据
-- **精美图表**: 自动生成饼图和折线图
-- **中文友好**: 智能字体检测,支持中英文混排
+手动翻 OpenReview 再逐篇归类太慢。ScholarScout 把抓取、筛选、分类、统计和画图串成一条流水线，几分钟内给出带图表的答案。
 
-### 🔧 灵活配置
-- **配置驱动**: 通过 `config.json` 管理参数
-- **零代码扩展**: 通过配置研究任意领域
-- **命令行优先**: 参数可覆盖配置文件
-- **多 API 兼容**: 支持 OpenAI、智谱、本地模型等
+## 亮点
 
-## 📋 目录
+- **自动抓取**：通过 OpenReview API 批量获取 ICLR、ICML 等会议多个年份的论文元数据。
+- **三种分类方式**：规则分类（按关键词，速度快、免费）、LLM 分类（更准，按 API 计费），以及混合策略（优先用 LLM，置信度低时回退到规则）。
+- **任意研究方向**：用 `--topic` 和 `--categories` 自定义主题与类别，不用改代码。
+- **适合大批量处理**：LLM 结果自动缓存，可限制请求速率，支持断点续传。
+- **直接出图**：生成类别分布饼图和年度趋势折线图，中文字体自动适配。
+- **兼容多种模型**：支持 OpenAI、智谱 GLM，以及 vLLM / Ollama 等任何 OpenAI 兼容接口。
 
-- [快速开始](#-快速开始)
-- [安装](#-安装)
-- [配置](#-配置)
-- [使用方法](#-使用方法)
-- [ICL 分类体系](#-icl-分类体系)
-- [工作流程](#-工作流程)
-- [输出文件说明](#-输出文件说明)
-- [高级功能](#-高级功能)
-- [常见问题](#-常见问题)
-- [项目架构](#-项目架构)
-
-## 🚀 快速开始
-
-### 一分钟体验
+## 快速开始
 
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/XiaoLi-XiaoTian/scholar-scout.git
+git clone https://github.com/holamochi/scholar-scout.git
 cd scholar-scout
-
-# 2. 安装依赖
 pip install requests pandas tqdm matplotlib
 
-# 3. 立即运行(使用规则分类)
-python3 openreview_icl_crawl_and_plot.py --years 2024
-
-# 4. 查看结果
-ls out/  # 生成的 CSV 和图表在这里
+python3 openreview_icl_crawl_and_plot.py --years 2024   # 规则分类，不需要 API
+ls out/                                                 # CSV 和图表都在这里
 ```
 
-### 🤖 启用 LLM 智能分类(可选)
+需要 Python 3.7+，并且能访问 OpenReview API。
+
+### 启用 LLM 分类
 
 ```bash
-# 1. 安装 OpenAI 库
 pip install openai
-
-# 2. 配置 API 密钥
-cp config.example.json config.json
-# 编辑 config.json,填入你的 API 信息
-
-# 3. 运行 LLM 模式
-python3 openreview_icl_crawl_and_plot.py --use_llm --years 2024
 ```
 
-## 📦 安装
-
-**系统要求**: Python 3.7+, 能访问 OpenReview API
-
-```bash
-# 基础安装(仅规则分类)
-pip install requests pandas tqdm matplotlib
-
-# 完整安装(含 LLM 功能)
-pip install requests pandas tqdm matplotlib openai
-```
-
-## ⚙️ 配置
-
-本工具采用 **配置文件 + 命令行参数** 的双层配置系统,灵活且安全。
-
-### 配置文件结构
-
-创建 `config.json`(基于 [config.example.json](config.example.json)):
+在仓库根目录创建 `config.json`（已列入 `.gitignore`，不会被提交）：
 
 ```json
 {
@@ -126,275 +67,106 @@ pip install requests pandas tqdm matplotlib openai
 }
 ```
 
-### 核心配置项
+```bash
+python3 openreview_icl_crawl_and_plot.py --use_llm --years 2024
+```
 
-**API 配置**(LLM 功能必需):
-- `api_base`: API 端点(支持 OpenAI、智谱、本地模型等)
-- `api_key`: API 密钥
-- `model`: 模型名称
-- `max_rpm`: 每分钟最大请求数
+配置优先级：命令行参数 > `config.json` > 默认值。
 
-**数据抓取**:
-- `years`: 年份列表,如 `[2023, 2024, 2025]`
-- `conferences`: 会议列表,如 `["ICLR", "ICML"]`
-
-**分类配置**:
-- `use_llm`: 是否启用 LLM 分类
-- `llm_confidence_threshold`: 置信度阈值(默认 0.6)
-
-**配置优先级**: 命令行参数 > 配置文件 > 默认值
-
-**安全提示**: 将 `config.json` 添加到 `.gitignore`,避免泄露 API 密钥
-
-## 📖 使用方法
-
-### 基础模式:快速统计
+## 常用命令
 
 ```bash
-# 使用默认配置(规则分类)
-python3 openreview_icl_crawl_and_plot.py
-
-# 指定年份
-python3 openreview_icl_crawl_and_plot.py --years 2024 2025
-
 # 指定会议和年份
-python3 openreview_icl_crawl_and_plot.py --confs ICLR --years 2025
+python3 openreview_icl_crawl_and_plot.py --confs ICLR --years 2024 2025
 
-# 静默模式(减少日志)
-python3 openreview_icl_crawl_and_plot.py --quiet
-```
-
-### LLM 模式:智能分类
-
-```bash
-# 启用 LLM(从配置文件读取 API)
-python3 openreview_icl_crawl_and_plot.py --use_llm
-
-# 临时覆盖 API 配置
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_api_key "your-api-key" \
-  --llm_model "gpt-4"
-
-# 使用智谱 API
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_api_base "https://open.bigmodel.cn/api/paas/v4" \
-  --llm_model "glm-4"
-```
-
-### 自定义主题研究
-
-研究任意学术领域,无需修改代码:
-
-```bash
-# 示例 1:多模态学习
+# 研究其他方向：类别格式为「类别名:关键词1,关键词2;下一个类别:关键词A,关键词B」
 python3 openreview_icl_crawl_and_plot.py \
   --topic "multimodal learning" \
-  --categories "视觉语言融合:vision,language,VLM;跨模态检索:retrieval,cross-modal;图像生成:generation,diffusion" \
-  --years 2024 2025
+  --categories "视觉语言融合:vision,language,VLM;跨模态检索:retrieval,cross-modal;图像生成:generation,diffusion"
 
-# 示例 2:强化学习
-python3 openreview_icl_crawl_and_plot.py \
-  --topic "reinforcement learning" \
-  --categories "策略优化:policy,PPO,TRPO;值函数:value,Q-learning;离线强化学习:offline,batch" \
-  --years 2024
+# 换用智谱或本地模型
+python3 openreview_icl_crawl_and_plot.py --use_llm \
+  --llm_api_base "https://open.bigmodel.cn/api/paas/v4" --llm_model "glm-4"
+python3 openreview_icl_crawl_and_plot.py --use_llm \
+  --llm_api_base "http://localhost:8000/v1" --llm_model "llama-3-8b" --llm_api_key "dummy"
+
+# 大批量：限速 + 断点续传（中断后重新运行同一条命令即可继续）
+python3 openreview_icl_crawl_and_plot.py --use_llm --llm_max_rpm 20 --llm_batch_size 5 \
+  --checkpoint_file checkpoint.json
+
+# 只用已有 CSV 重新画图；中文显示为方框时指定字体
+python3 openreview_icl_crawl_and_plot.py --plot_only --font "PingFang SC"
 ```
 
-**分类格式说明**: `类别名称:关键词1,关键词2,关键词3;下一个类别:关键词A,关键词B`
+辅助脚本：`reclassify_with_llm.py`（重新分类已有数据）、`test_llm_classify.py`（测试 LLM 分类）、`check_api_models.py`（检查 API 连通性和可用模型）。
 
-### 高级功能
-
-```bash
-# 从已有 CSV 重新生成图表(不重新抓取)
-python3 openreview_icl_crawl_and_plot.py --plot_only
-
-# 调整置信度阈值(控制 LLM vs 规则比例)
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_confidence_threshold 0.8  # 更严格,更多回退规则
-
-# 自定义字体(解决中文显示问题)
-python3 openreview_icl_crawl_and_plot.py --font "PingFang SC"  # macOS
-python3 openreview_icl_crawl_and_plot.py --font "Microsoft YaHei"  # Windows
-```
-
-### 辅助工具
-
-```bash
-# 重新分类已有数据
-python3 reclassify_with_llm.py
-
-# 测试 LLM 功能
-python3 test_llm_classify.py
-
-# 检查 API 可用模型
-python3 check_api_models.py
-```
-
-## 🏷️ ICL 分类体系
-
-内置 9 大核心类别,覆盖 In-Context Learning 研究全景:
-
-| 类别 | 研究方向 |
-|------|---------|
-| 📚 **Prompt工程与优化** | 示例选择、排序、模板设计 |
-| 🧠 **推理与思维链** | CoT、多步推理、自洽性 |
-| 🔬 **机理理解与可解释性** | 机制分析、诱导头、电路分析 |
-| 🏗️ **模型训练与架构** | 预训练方法、架构变体 |
-| ⚡ **效率优化** | 上下文压缩、KV缓存、长度外推 |
-| 📊 **评测基准与数据集** | 基准构建、评测方法 |
-| 🤖 **Agent与工具使用** | 规划、工具调用 |
-| 🛡️ **可靠性与安全** | 校准、鲁棒性、隐私 |
-| 🎯 **特定技术方法** | kNN-ICL、从错误学习 |
-
-### 分类方法对比
-
-| 特性 | 规则分类 | LLM 分类 | 混合策略(推荐) |
-|------|---------|---------|----------------|
-| **准确性** | ~70% | ~90% | ~88% |
-| **成本** | 免费 | $0.002-0.01/篇 | $0.001-0.005/篇 |
-| **速度** | 1000篇/秒 | 10篇/秒 | 50篇/秒 |
-
-**混合策略**: LLM 优先,低置信度(<0.6)自动回退规则分类,结果自动缓存
-
-## 🔄 工作流程
-
-1. **数据抓取**: 从 OpenReview API 获取论文元数据
-2. **主题过滤**: 根据关键词筛选相关论文
-3. **智能分类**: 规则/LLM/混合策略分类
-4. **结果输出**: 生成 CSV 文件(简化版+详细版)
-5. **可视化**: 自动绘制饼图和趋势图
-
-## 📁 输出文件说明
-
-运行后在 `out/` 目录生成:
+## 输出
 
 ```
 out/
 ├── icl_papers_filtered.csv              # 简化版论文列表
-├── icl_papers_classified_detailed.csv   # 详细版(含置信度、理由)
-├── icl_pie_donut_refined.png           # 类别分布饼图
-├── icl_trend_lines_refined.png         # 年度趋势图
-└── llm_cache.json                      # LLM 缓存(可选)
+├── icl_papers_classified_detailed.csv   # 详细版：含分类方法、置信度和分类理由
+├── icl_pie_donut_refined.png            # 类别分布饼图
+├── icl_trend_lines_refined.png          # 年度趋势图
+└── llm_cache.json                       # LLM 结果缓存
 ```
 
-**详细版 CSV 关键字段**:
-- `category_label`: 类别标签(含 emoji)
-- `method`: 分类方法(`rule`/`llm`/`hybrid`)
-- `confidence`: 置信度(0-1,仅 LLM)
-- `reasoning`: 分类理由(仅 LLM)
+详细版 CSV 的关键字段：`category_label`（类别）、`method`（`rule` / `llm` / `hybrid`）、`confidence`（仅 LLM）、`reasoning`（仅 LLM）。
 
-## 🚀 高级功能
+## 内置的 ICL 分类体系
 
-### 自定义主题和类别
+| 类别 | 研究方向 |
+| --- | --- |
+| Prompt 工程与优化 | 示例选择、排序、模板设计 |
+| 推理与思维链 | CoT、多步推理、自洽性 |
+| 机理理解与可解释性 | 机制分析、诱导头、电路分析 |
+| 模型训练与架构 | 预训练方法、架构变体 |
+| 效率优化 | 上下文压缩、KV 缓存、长度外推 |
+| 评测基准与数据集 | 基准构建、评测方法 |
+| Agent 与工具使用 | 规划、工具调用 |
+| 可靠性与安全 | 校准、鲁棒性、隐私 |
+| 特定技术方法 | kNN-ICL、从错误中学习 |
 
-**零代码扩展**:通过配置即可研究任意领域
+## 常见问题
 
-```bash
-# 在配置文件中设置
-{
-  "custom_taxonomy": {
-    "topic": "multimodal learning",
-    "categories": "视觉语言:vision,language;跨模态:cross-modal,retrieval"
-  }
-}
+- **图表中文显示为方框**：加 `--font "PingFang SC"`（macOS）或 `--font "Microsoft YaHei"`（Windows）。
+- **LLM 调用失败**：检查 API Key、地址和模型名，可以先运行 `python3 check_api_models.py` 测试。
+- **「其他 / 未归类」占比太高**：改用 `--use_llm`，或在 `--categories` 中补充关键词。
+- **保护 API Key**：把密钥写在 `config.json` 里（已被 `.gitignore` 忽略），不要在命令行里直接传入。
 
-# 或通过命令行
-python3 openreview_icl_crawl_and_plot.py \
-  --topic "graph neural network" \
-  --categories "图分类:graph classification;图生成:graph generation"
-```
+## 代码结构
 
-### 性能调优
+| 文件 | 职责 |
+| --- | --- |
+| `openreview_icl_crawl_and_plot.py` | 主程序入口 |
+| `config_loader.py` | 配置管理 |
+| `icl_fetcher.py` | OpenReview 数据抓取 |
+| `icl_taxonomy.py` | ICL 分类体系定义 |
+| `icl_classifier.py` | 分类（规则 / LLM / 混合） |
+| `icl_plotter.py` | 可视化 |
+| `custom_taxonomy.py` | 自定义主题扩展 |
 
-```bash
-# 调整速率限制(避免触发 API 限流)
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_max_rpm 20 \
-  --llm_batch_size 5
+## Topic / Keywords
 
-# 断点续传(处理大规模数据)
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --checkpoint_file "checkpoint.json"
-# 中断后重新运行相同命令即可从断点继续
-```
+- **解决的问题**：想了解某个研究方向在顶会（ICLR、ICML 等）上的论文规模、子方向构成和逐年趋势时，手动翻 OpenReview 并逐篇归类非常耗时。
+- **实现方式**：Python 脚本通过 OpenReview API 抓取论文元数据，按主题关键词筛选，用「关键词规则 + LLM」混合分类，LLM 低置信度时回退到规则，并缓存结果、支持断点续传，最后输出 CSV 和 matplotlib 图表；主题和类别都可以通过配置或命令行自定义。
+- **项目类别**：文献计量 · 学术论文分析 · 研究趋势可视化 · LLM 文本分类 · Python 命令行工具
+- **容易混淆**：它不是论文检索或阅读工具，也不下载 PDF 全文；分析的是 OpenReview 上的标题和摘要等元数据。
+- **中文关键词**：顶会论文统计、OpenReview 爬虫、ICLR 论文分析、ICML 论文分析、研究趋势、文献计量、论文分类、上下文学习、综述选题、LLM 分类
+- **English keywords**: OpenReview crawler, OpenReview API, ICLR papers, ICML papers, conference paper analysis, research trend analysis, bibliometrics, paper classification, in-context learning survey, LLM classifier, hybrid rule-based classification, matplotlib, Python CLI
 
-### 使用不同 API 提供商
+## TL;DR
 
-```bash
-# 智谱 GLM-4
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_api_base "https://open.bigmodel.cn/api/paas/v4" \
-  --llm_model "glm-4"
+> ScholarScout：输入一个研究方向，自动从 OpenReview 抓取 ICLR / ICML 论文，完成分类，并画出类别分布和年度趋势图。
 
-# 本地部署模型(vLLM/Ollama)
-python3 openreview_icl_crawl_and_plot.py \
-  --use_llm \
-  --llm_api_base "http://localhost:8000/v1" \
-  --llm_model "llama-3-8b" \
-  --llm_api_key "dummy"
-```
+## Link
 
-## ❓ 常见问题
+- GitHub 仓库：https://github.com/holamochi/scholar-scout
+- 同类项目：
+  - Paper Copilot paperlists（整理好的顶会论文与评审数据）：https://github.com/papercopilot/paperlists
+  - ICLR2020-OpenReviewData（爬取并可视化 ICLR 论文与评审）：https://github.com/shaohua0116/ICLR2020-OpenReviewData
+  - openreview-visualization（ICLR 投稿数据可视化）：https://github.com/ranpox/openreview-visualization
 
-**Q1: 中文显示为方框?**
-```bash
-python3 openreview_icl_crawl_and_plot.py --font "PingFang SC"  # macOS
-python3 openreview_icl_crawl_and_plot.py --font "Microsoft YaHei"  # Windows
-```
+## 开源许可
 
-**Q2: LLM API 调用失败?**
-检查 API key、endpoint、模型名称是否正确,可运行 `python3 check_api_models.py` 测试
-
-**Q3: "其他/未归类" 占比过高?**
-使用 LLM 分类: `python3 openreview_icl_crawl_and_plot.py --use_llm`
-
-**Q4: 如何重新分类已有数据?**
-运行 `python3 reclassify_with_llm.py` 或使用 `--plot_only` 模式
-
-**Q5: 如何保护 API 密钥?**
-将 `config.json` 添加到 `.gitignore`,不要在命令行中直接传递 API key
-
-## 🏗️ 项目架构
-
-### 核心模块
-
-| 模块 | 职责 |
-|------|------|
-| **openreview_icl_crawl_and_plot.py** | 主程序入口 |
-| **config_loader.py** | 配置管理 |
-| **icl_fetcher.py** | OpenReview 数据抓取 |
-| **icl_taxonomy.py** | ICL 分类体系定义 |
-| **icl_classifier.py** | 智能分类(规则/LLM/混合) |
-| **icl_plotter.py** | 数据可视化 |
-| **custom_taxonomy.py** | 自定义主题扩展 |
-
-### 辅助工具
-
-- `reclassify_with_llm.py`: 重新分类工具
-- `test_llm_classify.py`: LLM 功能测试
-- `check_api_models.py`: API 连接测试
-
----
-
-## 📜 许可证
-
-本项目采用 **MIT 许可证** - 详见 [LICENSE](LICENSE) 文件
-
-## 🙏 致谢
-
-感谢 [OpenReview](https://openreview.net/) 提供的优秀 API
-
----
-
-<div align="center">
-
-**更新日期**: 2025-12-27
-
-⭐ **如果这个项目对您有帮助,请给我们一个 Star!** ⭐
-
-</div>
+[MIT](LICENSE)。感谢 [OpenReview](https://openreview.net/) 提供的开放 API。
